@@ -4,7 +4,7 @@ This is a reference app using [Next.js](https://nextjs.org/) with [`NextAuth.js`
 
 ### Prerequisites
 
-1. Setup a Rollup ID app by visiting [https://console.rollup.io](https://console.rollup.io) (see guide: [https://docs.rollup.id/getting-started/create-an-application](https://docs.rollup.id/getting-started/create-an-application))
+1. Setup a Rollup ID app by visiting [https://console.rollup.id](https://console.rollup.id) (see guide: [https://docs.rollup.id/getting-started/create-an-application](https://docs.rollup.id/getting-started/create-an-application))
 
 2. Copy the `.env.local.example` => `.env.local`
 
