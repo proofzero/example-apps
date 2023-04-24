@@ -1,6 +1,6 @@
-This is a reference app using [Next.js](https://nextjs.org/) with [`NextAuth.js`](https://next-auth.js.org/).
-
 ## Getting Started
+
+This is a reference app using [Next.js](https://nextjs.org/) with [NextAuth.js](https://next-auth.js.org/).
 
 ### Prerequisites
 
@@ -9,6 +9,14 @@ This is a reference app using [Next.js](https://nextjs.org/) with [`NextAuth.js`
 2. Copy the `.env.local.example` => `.env.local`
 
 3. Copy the client id and client and client secret into a `.env.local` file in the root of this project.
+
+### How it works
+
+This example app uses the [NextAuth.js Cutom OAuth Provider](https://next-auth.js.org/configuration/providers/oauth#using-a-custom-provider) to authenticate users with Rollup.
+
+You'll find the provider configuration in `pages/api/auth/[...nextauth].js`. This is where you'll need to add your client id and client secret.
+
+NextAuth.js will handle the OAuth flow and return a user object and session with the access token and refresh token. You can use these tokens to make requests to the Rollup Galaxy API.
 
 ### Running app
 
