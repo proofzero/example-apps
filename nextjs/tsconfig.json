@@ -24,7 +24,7 @@
     "**/*.ts",
     "**/*.tsx",
     "pages/api/auth/[...nextauth].ts",
-    "pages/_app.js",
+    "pages/_app.ts",
     "components/btn-login.js"
   ],
   "exclude": ["node_modules"]
