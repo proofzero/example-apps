@@ -1,6 +1,25 @@
-# Welcome to Remix!
+# Rollup Remix Example App
 
 - [Remix Docs](https://remix.run/docs)
+- [Rollup Docs](https://docs.rollup.id)
+
+## Setup Rollup Auth
+
+### Prerequisites
+
+1. Setup a Rollup ID app by visiting [https://console.rollup.id](https://console.rollup.id) (see guide: [https://docs.rollup.id/getting-started/create-an-application](https://docs.rollup.id/getting-started/create-an-application))
+
+2. Copy the `.env.example` => `.env`
+
+3. Copy the client id and client and client secret into a `.env` file in the root of this project.
+
+### Notes
+
+Be sure to also set custom domain names in the env files and auth files:
+
+- `app/routes/auth.tsx`
+- `app/routes/auth.callback.tsx`
+- `auth.server.ts`
 
 ## Development
 

@@ -142,7 +142,7 @@ export class RollupIDStrategy<User> extends OAuth2Strategy<
 const getProfileSessionStorage = () =>
   cloudflare.createCookieSessionStorage({
     cookie: {
-      domain: "localhost:8787",
+      domain: "http://localhost:8787",
       httpOnly: true,
       name: "_rollup_remix_example",
       path: "/",
