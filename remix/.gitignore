@@ -8,9 +8,8 @@
 # testing
 /coverage
 
-# next.js
-/.next/
-/out/
+# remix
+/remix/.cache/
 
 # production
 /build

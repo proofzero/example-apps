@@ -139,15 +139,15 @@ export class RollupIDStrategy<User> extends OAuth2Strategy<
   }
 }
 
-const getProfileSessionStorage = () =>
+const getSessionStorage = () =>
   cloudflare.createCookieSessionStorage({
     cookie: {
-      domain: "http://localhost:8787",
+      domain: COOKIE_DOMAIN,
       httpOnly: true,
       name: "_rollup_remix_example",
       path: "/",
       sameSite: "lax",
-      secure: true,
+      secure: NODE_ENV !== undefined && NODE_ENV === "production",
       maxAge: 7776000 /*60 * 60 * 24 * 90*/,
       secrets: ["SUPER SECRET"],
     },
@@ -162,7 +162,7 @@ export function parseJwt(token: string): JWTPayload {
 }
 
 export const initAuthenticator = (options: RollupIDStrategyOptions) => {
-  const oauthStorage = getProfileSessionStorage();
+  const oauthStorage = getSessionStorage();
   const strategy = new RollupIDStrategy(
     options,
     async ({ accessToken, refreshToken, extraParams }) => {

@@ -13,14 +13,6 @@
 
 3. Copy the client id and client and client secret into a `.env` file in the root of this project.
 
-### Notes
-
-Be sure to also set custom domain names in the env files and auth files:
-
-- `app/routes/auth.tsx`
-- `app/routes/auth.callback.tsx`
-- `auth.server.ts`
-
 ## Development
 
 You will be running two processes during development:

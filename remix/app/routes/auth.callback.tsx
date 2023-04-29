@@ -6,9 +6,9 @@ export const loader: LoaderFunction = async ({ request }) => {
     domain: "passport.rollup.id",
     clientID: CLIENT_ID || "",
     clientSecret: CLIENT_SECRET || "",
-    callbackURL: "http://localhost:8787/auth/callback",
+    callbackURL: `${COOKIE_DOMAIN}/auth/callback`,
   });
-  await authenticator.authenticate("rollupid", request, {
+  return await authenticator.authenticate("rollupid", request, {
     successRedirect: "/",
   });
 };
