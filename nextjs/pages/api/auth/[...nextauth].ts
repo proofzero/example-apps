@@ -18,12 +18,14 @@ export const authOptions = {
       authorization: {
         params: { scope: "openid email profile connected_accounts" },
       },
+      httpOptions: {
+        timeout: 10000,
+      },
       idToken: true,
       checks: ["state"],
-      token: "https://passport-dev.rollup.id/token",
-      userinfo: "https://passport-dev.rollup.id/userinfo",
-      wellKnown:
-        "https://passport-dev.rollup.id/.well-known/openid-configuration",
+      token: "https://passport.rollup.id/token",
+      userinfo: "https://passport.rollup.id/userinfo",
+      wellKnown: "https://passport.rollup.id/.well-known/openid-configuration",
       profile(profile: User) {
         console.debug({ profile });
         return {
