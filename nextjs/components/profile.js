@@ -1,4 +1,4 @@
-import { useSession, signIn, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 
 export default function AccessToken() {
   const { data: session, status } = useSession();
@@ -27,7 +27,9 @@ export default function AccessToken() {
       <ul>
         {session.profile.erc_4337.map((account, key) => (
           <li key={key}>
-            {account.nickname}: {account.address}
+            <a href={`/4337/${account.address}`}>
+              {account.nickname}: {account.address}
+            </a>
           </li>
         ))}
       </ul>

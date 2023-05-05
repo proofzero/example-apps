@@ -27,9 +27,9 @@ export const authOptions = {
       },
       idToken: true,
       checks: ["state"],
-      token: "https://passport.rollup.id/token",
-      userinfo: "https://passport.rollup.id/userinfo",
-      wellKnown: "https://passport.rollup.id/.well-known/openid-configuration",
+      token: `https://${process.env.ROLLUP_DOMAIN}/token`,
+      userinfo: `https://${process.env.ROLLUP_DOMAIN}/userinfo`,
+      wellKnown: `https://${process.env.ROLLUP_DOMAIN}/.well-known/openid-configuration`,
       profile(profile: Profile, tokens: TokenSet) {
         return {
           id: profile.sub,
@@ -77,16 +77,19 @@ export const authOptions = {
       // If the access token has expired, try to refresh it
       try {
       } catch (error) {
-        const response = await fetch("https://passport.rollup.id/token", {
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams({
-            client_id: process.env.ROLLUP_CLIENT_ID!,
-            client_secret: process.env.ROLLUP_CLIENT_SECRET!,
-            grant_type: "refresh_token",
-            refresh_token: token.refresh_token,
-          }),
-          method: "POST",
-        });
+        const response = await fetch(
+          `https://${process.env.ROLLUP_DOMAIN}/token`,
+          {
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+              client_id: process.env.ROLLUP_CLIENT_ID!,
+              client_secret: process.env.ROLLUP_CLIENT_SECRET!,
+              grant_type: "refresh_token",
+              refresh_token: token.refresh_token,
+            }),
+            method: "POST",
+          }
+        );
 
         const tokens: TokenSet = await response.json();
 
