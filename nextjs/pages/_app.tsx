@@ -8,6 +8,7 @@ export default function App({
   Component: any;
   pageProps: { session: Session; [key: string]: any };
 }): JSX.Element {
+  console.log("my session", { session });
   return (
     <SessionProvider session={session}>
       <Component {...pageProps} />

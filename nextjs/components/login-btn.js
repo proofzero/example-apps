@@ -5,7 +5,8 @@ export default function Component() {
   if (session) {
     return (
       <>
-        Signed in as {session.user.email} <br />
+        Signed in as <img height="25px" src={session.user.image} />{" "}
+        {session.user.name} <br />
         <button onClick={() => signOut()}>Sign out</button>
       </>
     );
@@ -13,7 +14,7 @@ export default function Component() {
   return (
     <>
       Not signed in <br />
-      <button onClick={() => signIn()}>Sign in</button>
+      <button onClick={() => signIn("rollup")}>Sign in</button>
     </>
   );
 }

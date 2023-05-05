@@ -1,27 +1,8 @@
-import NextAuth, { DefaultSession } from "next-auth";
+import NextAuth, { DefaultSession, DefaultUser } from "next-auth";
 import { JWT } from "next-auth/jwt";
 
 declare module "next-auth" {
-  /**
-   * Returned by `useSession`, `getSession` and received as a prop on the `SessionProvider` React Context
-   */
-  interface Session {
-    accessToken: string;
-    user: {
-      connected_accounts?: [
-        {
-          type: string;
-          identifier: string;
-        }
-      ];
-    } & DefaultSession["user"];
-  }
-
-  /**
-   * The shape of the user object returned in the OAuth providers' `profile` callback,
-   * or the second parameter of the `session` callback, when using a database.
-   */
-  interface User {
+  interface Profile {
     name: string;
     picture: string;
     email?: string;
@@ -31,11 +12,21 @@ declare module "next-auth" {
         identifier: string;
       }
     ];
-    sub: string;
-    iss: string;
-    aud: [string];
-    iat: number;
-    exp: number;
+    erc_4337?: [
+      {
+        nickname: string;
+        address: string;
+      }
+    ];
+  }
+
+  /**
+   * Returned by `useSession`, `getSession` and received as a prop on the `SessionProvider` React Context
+   */
+  interface Session {
+    accessToken: string;
+    user: DefaultUser;
+    profile: Profile;
   }
 }
 
@@ -44,11 +35,16 @@ declare module "next-auth/jwt" {
   interface JWT {
     /** OpenID ID Token */
     name: string;
+    picture: string;
     email?: string;
     sub: string;
-    accessToken: string;
+    aud: [string];
     iat: number;
     exp: number;
     jti: string;
+    iss: string;
+    access_token: string;
+    refresh_token: string;
+    profile: Profile;
   }
 }
