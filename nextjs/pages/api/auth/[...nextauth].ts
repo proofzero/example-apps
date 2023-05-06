@@ -2,6 +2,12 @@ import NextAuth, { Profile, Session, TokenSet, User } from "next-auth";
 import { JWT } from "next-auth/jwt/types";
 import jwt_decode from "jwt-decode";
 
+console.debug({
+  token: `${process.env.ROLLUP_DOMAIN}/token`,
+  userinfo: `${process.env.ROLLUP_DOMAIN}/userinfo`,
+  wellKnown: `${process.env.ROLLUP_DOMAIN}/.well-known/openid-configuration`,
+});
+
 export const authOptions = {
   // Configure one or more authentication providers
 
