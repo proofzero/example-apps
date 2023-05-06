@@ -1,6 +1,6 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { Signer, ethers } from "ethers";
+import { Contract, Signer, ethers } from "ethers";
 import { useState } from "react";
 import { createSessionKeySigner } from "@zerodevapp/sdk";
 import { SessionSigner } from "@zerodevapp/sdk/dist/src/session/SessionSigner";
@@ -36,6 +36,8 @@ export default function Address() {
               if (!res.ok) {
                 throw "Failed to create session key";
               }
+              setSessionError(undefined);
+
               const json = await res.json();
               console.debug({ sessionKey });
               setSessionKey({
@@ -69,6 +71,23 @@ export default function Address() {
                     sessionKey.privateSigner as unknown as SessionSigner,
                   projectId: process.env.ZERO_DEV_PROJECT_ID!,
                 });
+                const contractAddress =
+                  "0xcA171d43B2f5e5c1a071d3Dba8354eF0E2df4816";
+                const contractABI = [
+                  "function mint(address _to) public",
+                  "function balanceOf(address owner) external view returns (uint256 balance)",
+                ];
+                const nftContract = new Contract(
+                  contractAddress,
+                  contractABI,
+                  sessionKeySigner as unknown as Signer
+                );
+                const toAddress = await sessionKey.privateSigner.getAddress();
+                const receipt = await nftContract.mint(toAddress);
+                await receipt.wait();
+                console.log(
+                  `NFT balance: ${await nftContract.balanceOf(toAddress)}`
+                );
               }}
             >
               Mint NFT to Wallet
