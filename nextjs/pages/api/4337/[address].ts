@@ -20,32 +20,31 @@ export default async function handler(req, res) {
   if (session && req.method === "POST") {
     const sessionPublicKey = req.body.sessionPublicKey;
     console.debug({ accessToken: session.accessToken });
-    const sessionKeyRegistrationRes = await fetch(
-      process.env.ROLLUP_GALAXY_URL!,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.accessToken}`,
-          "X-GALAXY-KEY": process.env.ROLLUP_GALAXY_API_KEY!,
+    await fetch(process.env.ROLLUP_GALAXY_URL!, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.accessToken}`,
+        "X-GALAXY-KEY": process.env.ROLLUP_GALAXY_API_KEY!,
+      },
+      body: JSON.stringify({
+        query: gqlDoc,
+        variables: {
+          accountUrn: session.profile.sub, //users' accountURN
+          smartContractWalletAddress: address, //users' smart contract wallet address
+          sessionPublicKey, //your(devs') public key for which to issue session key
         },
-        body: JSON.stringify({
-          query: gqlDoc,
-          variables: {
-            accountUrn: session.profile.sub, //users' accountURN
-            smartContractWalletAddress: address, //users' smart contract wallet address
-            sessionPublicKey, //your(devs') public key for which to issue session key
-          },
-        }),
-      }
-    );
-    console.debug({
-      sessionKeyRegistrationRes: (await sessionKeyRegistrationRes.json())
-        .errors,
-    });
-  }
+      }),
+    })
+      .then(async (keyRes) => {
+        if (keyRes.ok) res.status(201).json(await keyRes.json());
+        throw new Error(await keyRes.json());
+      })
+      .catch((error) => {
+        console.error({ error });
+        res.status(500).json({ error });
+      });
 
-  // Found the name.
-  // Sends a HTTP success code
-  res.status(200); //.json({ data: `${body.first} ${body.last}` });
+    return res;
+  }
 }
