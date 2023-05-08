@@ -19,7 +19,7 @@ export default async function handler(req, res) {
 
   if (session && req.method === "POST") {
     const sessionPublicKey = req.body.sessionPublicKey;
-    console.debug({ accessToken: session.accessToken });
+    console.debug({ accessToken: session.accessToken, sessionPublicKey });
     await fetch(process.env.ROLLUP_GALAXY_URL!, {
       method: "POST",
       headers: {
@@ -32,19 +32,17 @@ export default async function handler(req, res) {
         variables: {
           accountUrn: session.profile.sub, //users' accountURN
           smartContractWalletAddress: address, //users' smart contract wallet address
-          sessionPublicKey, //your(devs') public key for which to issue session key
+          sessionPublicKey, //public key for which to issue session key
         },
       }),
     })
       .then(async (keyRes) => {
-        if (keyRes.ok) res.status(201).json(await keyRes.json());
-        throw new Error(await keyRes.json());
+        if (keyRes.ok) res.status(201).json((await keyRes.json()).data);
+        else throw new Error(`${keyRes.status} ${keyRes.statusText}`);
       })
       .catch((error) => {
         console.error({ error });
         res.status(500).json({ error });
       });
-
-    return res;
   }
 }

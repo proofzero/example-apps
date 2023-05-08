@@ -39,10 +39,10 @@ export default function Address() {
               setSessionError(undefined);
 
               const json = await res.json();
-              console.debug({ sessionKey });
+              console.debug({ sessionKey: json });
               setSessionKey({
                 privateSigner,
-                sessionJWT: json.data.sessionKey,
+                sessionJWT: json.sessionKey,
               });
             })
             .catch((err) => {
@@ -69,7 +69,7 @@ export default function Address() {
                   sessionKeyData: sessionKey.sessionJWT,
                   privateSigner:
                     sessionKey.privateSigner as unknown as SessionSigner,
-                  projectId: process.env.ZERO_DEV_PROJECT_ID!,
+                  projectId: "1f38fc34-9a49-4985-a56a-23c0b21ea3e2",
                 });
                 const contractAddress =
                   "0xcA171d43B2f5e5c1a071d3Dba8354eF0E2df4816";
@@ -83,10 +83,13 @@ export default function Address() {
                   sessionKeySigner as unknown as Signer
                 );
                 const toAddress = await sessionKey.privateSigner.getAddress();
-                const receipt = await nftContract.mint(toAddress);
+                const receipt = await nftContract.mint(toAddress, {
+                  gasLimit: 300000,
+                });
                 await receipt.wait();
                 console.log(
-                  `NFT balance: ${await nftContract.balanceOf(toAddress)}`
+                  `NFT balance: ${await nftContract.balanceOf(toAddress)}`,
+                  receipt
                 );
               }}
             >
