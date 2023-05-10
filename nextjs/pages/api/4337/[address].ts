@@ -15,10 +15,10 @@ export default async function handler(req, res) {
   const session = await getServerSession(req, res, authOptions);
   // console.debug({ session });
 
-  const { address } = req.query;
+  const { address } = req.query; // smart contract wallet address
 
   if (session && req.method === "POST") {
-    const sessionPublicKey = req.body.sessionPublicKey;
+    const sessionPublicKey = req.body.sessionPublicKey; // session public key
     console.debug({ accessToken: session.accessToken, sessionPublicKey });
     await fetch(process.env.ROLLUP_GALAXY_URL!, {
       method: "POST",

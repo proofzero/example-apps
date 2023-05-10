@@ -2,7 +2,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { Contract, Signer, ethers } from "ethers";
 import { useState } from "react";
-import { createSessionKeySigner } from "@zerodevapp/sdk";
+import { ZeroDevSigner, createSessionKeySigner } from "@zerodevapp/sdk";
 import { SessionSigner } from "@zerodevapp/sdk/dist/src/session/SessionSigner";
 
 export default function Address() {
@@ -13,7 +13,9 @@ export default function Address() {
   const [sessionKey, setSessionKey] = useState<{
     privateSigner: Signer;
     sessionJWT: string;
+    signerJson: string;
   }>();
+  const [txnHash, setTxnHash] = useState<string>();
   const [sessionError, setSessionError] = useState<Error>();
 
   return (
@@ -23,6 +25,7 @@ export default function Address() {
         onClick={async () => {
           const privateSigner = ethers.Wallet.createRandom();
           const address = await privateSigner.getAddress();
+
           await fetch(`/api/4337/${query.address}`, {
             method: "POST",
             headers: {
@@ -39,10 +42,16 @@ export default function Address() {
               setSessionError(undefined);
 
               const json = await res.json();
-              console.debug({ sessionKey: json });
+              const signerJson = await privateSigner.encrypt("password");
+              console.debug({
+                publicKey: address,
+                sessionKey: json,
+                signerJson,
+              });
               setSessionKey({
                 privateSigner,
                 sessionJWT: json.sessionKey,
+                signerJson,
               });
             })
             .catch((err) => {
@@ -65,14 +74,18 @@ export default function Address() {
           <div>
             <button
               onClick={async () => {
+                console.debug("json again", sessionKey.signerJson);
+                const privateSigner = await ethers.Wallet.fromEncryptedJson(
+                  sessionKey.signerJson,
+                  "password"
+                );
                 const sessionKeySigner = await createSessionKeySigner({
                   sessionKeyData: sessionKey.sessionJWT,
-                  privateSigner:
-                    sessionKey.privateSigner as unknown as SessionSigner,
-                  projectId: "1f38fc34-9a49-4985-a56a-23c0b21ea3e2",
+                  privateSigner: privateSigner,
+                  projectId: "147f57a1-ae4f-47a0-b815-95225468f657",
                 });
                 const contractAddress =
-                  "0xcA171d43B2f5e5c1a071d3Dba8354eF0E2df4816";
+                  "0x34bE7f35132E97915633BC1fc020364EA5134863";
                 const contractABI = [
                   "function mint(address _to) public",
                   "function balanceOf(address owner) external view returns (uint256 balance)",
@@ -80,21 +93,30 @@ export default function Address() {
                 const nftContract = new Contract(
                   contractAddress,
                   contractABI,
-                  sessionKeySigner as unknown as Signer
+                  sessionKeySigner
                 );
-                const toAddress = await sessionKey.privateSigner.getAddress();
-                const receipt = await nftContract.mint(toAddress, {
-                  gasLimit: 300000,
-                });
+                const receipt = await nftContract.mint(query.address);
                 await receipt.wait();
+                setTxnHash(receipt.hash);
                 console.log(
-                  `NFT balance: ${await nftContract.balanceOf(toAddress)}`,
+                  `NFT balance: ${await nftContract.balanceOf(query.address)}`,
                   receipt
                 );
               }}
             >
               Mint NFT to Wallet
             </button>
+            {txnHash && (
+              <p>
+                Transaction Hash:{" "}
+                <a
+                  target="_blank"
+                  href={`https://www.jiffyscan.xyz/userOpHash/${txnHash}`}
+                >
+                  {txnHash}
+                </a>
+              </p>
+            )}
           </div>
         </>
       )}
