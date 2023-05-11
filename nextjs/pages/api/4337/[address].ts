@@ -1,16 +1,6 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]";
 
-const gqlDoc = `mutation registerSessionKeyMutation(
-  $sessionPublicKey: String!,
-  $smartContractWalletAddress: String!) {
-
-    sessionKey: registerSessionKey(
-      sessionPublicKey: $sessionPublicKey,
-      smartContractWalletAddress: $smartContractWalletAddress)
-
-}`;
-
 export default async function handler(req, res) {
   const session = await getServerSession(req, res, authOptions);
   // console.debug({ session });
@@ -20,7 +10,7 @@ export default async function handler(req, res) {
   if (session && req.method === "POST") {
     const sessionPublicKey = req.body.sessionPublicKey; // session public key
     console.debug({ accessToken: session.accessToken, sessionPublicKey });
-    await fetch(process.env.ROLLUP_GALAXY_URL!, {
+    await fetch(`${process.env.ROLLUP_GALAXY_URL}/register-session-key`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -28,16 +18,16 @@ export default async function handler(req, res) {
         "X-GALAXY-KEY": process.env.ROLLUP_GALAXY_API_KEY!,
       },
       body: JSON.stringify({
-        query: gqlDoc,
-        variables: {
-          accountUrn: session.profile.sub, //users' accountURN
-          smartContractWalletAddress: address, //users' smart contract wallet address
-          sessionPublicKey, //public key for which to issue session key
-        },
+        smartContractWalletAddress: address, //users' smart contract wallet address
+        sessionPublicKey, //public key for which to issue session key
       }),
     })
       .then(async (keyRes) => {
-        if (keyRes.ok) res.status(201).json((await keyRes.json()).data);
+        console.debug({
+          keyRes,
+          url: `${process.env.ROLLUP_GALAXY_URL}/register-session-key`,
+        });
+        if (keyRes.ok) res.status(201).json(await keyRes.json());
         else throw new Error(`${keyRes.status} ${keyRes.statusText}`);
       })
       .catch((error) => {

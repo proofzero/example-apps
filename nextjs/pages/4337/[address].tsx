@@ -2,8 +2,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { Contract, Signer, ethers } from "ethers";
 import { useState } from "react";
-import { ZeroDevSigner, createSessionKeySigner } from "@zerodevapp/sdk";
-import { SessionSigner } from "@zerodevapp/sdk/dist/src/session/SessionSigner";
+import { createSessionKeySigner } from "@zerodevapp/sdk";
 
 export default function Address() {
   const router = useRouter();
@@ -43,19 +42,13 @@ export default function Address() {
 
               const json = await res.json();
               const signerJson = await privateSigner.encrypt("password");
-              console.debug({
-                publicKey: address,
-                sessionKey: json,
-                signerJson,
-              });
               setSessionKey({
                 privateSigner,
-                sessionJWT: json.sessionKey,
+                sessionJWT: json,
                 signerJson,
               });
             })
             .catch((err) => {
-              console.error(err);
               setSessionError(err);
             });
         }}

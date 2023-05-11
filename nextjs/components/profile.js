@@ -8,31 +8,101 @@ export default function AccessToken() {
   }
 
   if (status === "unauthenticated") {
-    return <p>Access Denied</p>;
+    return <p>Start the demo by signing in.</p>;
   }
 
   return (
     <div>
-      <h1>Profile:</h1>
+      <p className="text-sm my-2">
+        Hi {session.user.name}. This is your profile based on the consented
+        claims you approved.
+      </p>
 
-      <h2>Connected Accounts</h2>
-      <ul>
-        {session.profile.connected_accounts.map((account, key) => (
-          <li key={key}>
-            {account.type}: {account.identifier}
-          </li>
-        ))}
-      </ul>
-      <h2>ERC 4337 Accounts</h2>
-      <ul>
-        {session.profile.erc_4337.map((account, key) => (
-          <li key={key}>
-            <a href={`/4337/${account.address}`}>
-              {account.nickname}: {account.address}
-            </a>
-          </li>
-        ))}
-      </ul>
+      <h3 className="text-2xl my-1 mt-4">System Identifier</h3>
+      <i className="text-sm">Your unique digital identifier</i>
+      <p>{session.profile.sub}</p>
+
+      <h3 className="text-2xl my-1 mt-4">Email Address</h3>
+      <i className="text-sm">The email address you shared with this app</i>
+      <p>{session.profile.email}</p>
+
+      <h3 className="text-2xl my-1 mt-4">Connected Accounts</h3>
+      <i className="text-sm">
+        These are the accounts you connected to your profile:
+      </i>
+      <table className="min-w-full divide-y divide-gray-300">
+        <thead>
+          <tr>
+            <th
+              scope="col"
+              className="py-3.5 text-left text-sm font-semibold text-gray-900"
+            >
+              Account Type
+            </th>
+            <th
+              scope="col"
+              className=" py-3.5 text-left text-sm font-semibold text-gray-900"
+            >
+              Account Identifier
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {session.profile.connected_accounts.map((account, key) => (
+            <tr key={key}>
+              <td className="whitespace-nowrap py-4 text-sm text-gray-500">
+                {account.type}
+              </td>{" "}
+              <td className="whitespace-nowrap py-4 text-sm text-gray-500">
+                {account.identifier}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <h3 className="text-2xl my-1 mt-4">Smart Contract Wallets</h3>
+      <p>
+        <i className="text-sm">
+          Click any of the listed accounts to try out signless transactions.
+        </i>
+      </p>
+      <table className="min-w-full divide-y divide-gray-300">
+        <thead>
+          <tr>
+            <th
+              scope="col"
+              className="py-3 text-left text-sm font-semibold text-gray-900"
+            >
+              Account Nickname
+            </th>
+            <th
+              scope="col"
+              className=" py-3 text-left text-sm font-semibold text-gray-900"
+            >
+              Account Address
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {session.profile.erc_4337.map((account, key) => (
+            <tr key={key}>
+              <td
+                scope="col"
+                className="py-3 text-left text-sm font-semibold text-gray-900"
+              >
+                {account.nickname}
+              </td>
+              <td
+                scope="col"
+                className="py-3 text-left text-sm font-semibold text-gray-900 underline-offset-auto"
+              >
+                <a href={`/4337/${account.address}`}>{account.address}</a>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
