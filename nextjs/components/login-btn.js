@@ -4,7 +4,7 @@ export default function Component() {
   const { data: session } = useSession();
   if (session) {
     return (
-      <div class="flex my-4">
+      <div className="flex my-4">
         <p>
           <img
             className="inline-block h-10 w-10 rounded-full"
@@ -26,7 +26,7 @@ export default function Component() {
     );
   }
   return (
-    <div class="flex my-4">
+    <div className="flex my-4">
       <p>
         <i>
           Be sure to set you environment variables in your ".env.local" file

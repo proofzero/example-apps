@@ -18,7 +18,7 @@ export const authOptions = {
       },
       authorization: {
         params: {
-          scope: "connected_accounts erc_4337",
+          scope: "openid profile erc_4337 connected_accounts",
           prompt: "consent", // always ask for authorization
         },
       },
@@ -28,14 +28,33 @@ export const authOptions = {
       idToken: true,
       checks: ["state"],
       token: `${process.env.ROLLUP_DOMAIN}/token`,
-      userinfo: `${process.env.ROLLUP_DOMAIN}/userinfo`,
+      userinfo: {
+        url: `${process.env.ROLLUP_DOMAIN}/userinfo`,
+        // The result of this method will be the input to the `profile` callback.
+        async request(context: {
+          userinfo: any;
+          provider: { userinfo: { url: RequestInfo | URL } };
+          tokens: { access_token: string };
+        }) {
+          // context contains useful properties to help you make the request.
+          const profileRes = await fetch(context.provider.userinfo.url, {
+            headers: {
+              Authorization: `Bearer ${context.tokens.access_token}`,
+            },
+          });
+          const profile = await profileRes.json();
+          return profile;
+        },
+      },
       wellKnown: `${process.env.ROLLUP_DOMAIN}/.well-known/openid-configuration`,
-      profile(profile: Profile, tokens: TokenSet) {
+      profile(user: User, tokens: TokenSet) {
         return {
-          id: profile.sub,
-          image: profile.picture,
-          name: profile.name,
-          email: profile.email,
+          id: user.sub,
+          image: user.picture,
+          name: user.name,
+          email: user.email,
+          connected_accounts: user.connected_accounts,
+          erc_4337: user.erc_4337,
         };
       },
     },
@@ -45,6 +64,8 @@ export const authOptions = {
     async jwt({
       token,
       account,
+      user,
+      profile,
     }: {
       token: JWT;
       account: {
@@ -52,13 +73,13 @@ export const authOptions = {
         refresh_token: string;
         id_token: string;
       };
+      user: User;
+      profile: Profile;
     }) {
-      // console.log({ token, account });
       // Persist the OAuth access_token to the token right after signin
       // we are authorizing with rollup we will have the encoded tokens
+      console.log({ token });
       if (account) {
-        console.log({ profile: jwt_decode(account.id_token) });
-        const profile = jwt_decode(account.id_token);
         return {
           access_token: account.access_token,
           expires_at: token.exp,
@@ -68,7 +89,7 @@ export const authOptions = {
           email: token.email,
           id: token.sub,
           token,
-          profile,
+          user,
         };
       } else if (Date.now() < token.exp * 1000) {
         // If the access token has not expired yet, return it
@@ -76,7 +97,6 @@ export const authOptions = {
       }
       // If the access token has expired, try to refresh it
       try {
-      } catch (error) {
         const response = await fetch(`${process.env.ROLLUP_DOMAIN}/token`, {
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: new URLSearchParams({
@@ -100,12 +120,16 @@ export const authOptions = {
           // many providers may only allow using a refresh token once.
           refresh_token: tokens.refresh_token ?? token.refresh_token,
         };
+      } catch (error) {
+        console.error("Error refreshing access token: ", error);
+        return { ...token, error: "RefreshAccessTokenError" as const };
       }
     },
     async session({ session, token }: { session: Session; token: JWT }) {
       // Send propertaies to the client, like an access_token from a provider.
       session.accessToken = token.access_token;
-      session.profile = token.profile;
+      session.user = token.user;
+      session.error = token.error as string;
       return session;
     },
   },

@@ -27,11 +27,10 @@ export default function Address() {
     if (status === "loading" || !isReady) return;
     if (
       status === "unauthenticated" ||
-      !session?.profile ||
-      (!session?.profile.erc_4337 &&
-        !session?.profile.erc_4337?.filter(
-          (scw) => scw.address === query.address
-        ).length)
+      !session?.user ||
+      (!session?.user.erc_4337 &&
+        !session?.user.erc_4337?.filter((scw) => scw.address === query.address)
+          .length)
     ) {
       push("/");
     }
