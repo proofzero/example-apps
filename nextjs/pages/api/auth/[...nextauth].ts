@@ -18,7 +18,7 @@ export const authOptions = {
       },
       authorization: {
         params: {
-          scope: "openid profile erc_4337 connected_accounts",
+          scope: "openid profile email erc_4337 connected_accounts",
           prompt: "consent", // always ask for authorization
         },
       },

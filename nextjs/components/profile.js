@@ -20,7 +20,7 @@ export default function AccessToken() {
 
       <h3 className="text-2xl my-1 mt-4">System Identifier</h3>
       <i className="text-sm">Your unique digital identifier</i>
-      <p>{session.user.sub || "No system identifier claim found"}</p>
+      <p>{session.user.id || "No system identifier claim found"}</p>
 
       <h3 className="text-2xl my-1 mt-4">Email Address</h3>
       <i className="text-sm">The email address you shared with this app</i>
