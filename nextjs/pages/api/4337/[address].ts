@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   if (session && req.method === "POST") {
     const sessionPublicKey = req.body.sessionPublicKey; // session public key
     console.debug({ accessToken: session.accessToken, sessionPublicKey });
-    await fetch(`${process.env.ROLLUP_GALAXY_URL}/register-session-key`, {
+    await fetch("https://galaxy.rollup.id/rest/register-session-key", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -25,7 +25,7 @@ export default async function handler(req, res) {
       .then(async (keyRes) => {
         console.debug({
           keyRes,
-          url: `${process.env.ROLLUP_GALAXY_URL}/register-session-key`,
+          url: "https://galaxy.rollup.id/rest/register-session-key",
         });
         if (keyRes.ok) res.status(201).json(await keyRes.json());
         else throw new Error(`${keyRes.status} ${keyRes.statusText}`);
