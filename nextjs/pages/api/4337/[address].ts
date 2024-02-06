@@ -1,38 +1,27 @@
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "../auth/[...nextauth]";
+import { getServerSession } from 'next-auth/next'
+import { authOptions } from '../auth/[...nextauth]'
 
 export default async function handler(req, res) {
-  const session = await getServerSession(req, res, authOptions);
-  // console.debug({ session });
+  if (req.method !== 'POST') return
 
-  const { address } = req.query; // smart contract wallet address
+  const session = await getServerSession(req, res, authOptions)
+  if (!session) return
 
-  if (session && req.method === "POST") {
-    const sessionPublicKey = req.body.sessionPublicKey; // session public key
-    console.debug({ accessToken: session.accessToken, sessionPublicKey });
-    await fetch(`${process.env.ROLLUP_GALAXY_URL}/register-session-key`, {
-      method: "POST",
+  const galaxyResponse = await fetch(
+    `${process.env.ROLLUP_GALAXY_URL}/register-session-key`,
+    {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         Authorization: `Bearer ${session.accessToken}`,
-        "X-GALAXY-KEY": process.env.ROLLUP_GALAXY_API_KEY!,
+        'X-GALAXY-KEY': process.env.ROLLUP_GALAXY_API_KEY!,
       },
       body: JSON.stringify({
-        smartContractWalletAddress: address, //users' smart contract wallet address
-        sessionPublicKey, //public key for which to issue session key
+        smartContractWalletAddress: req.query.address,
+        sessionKeyAddress: req.body.sessionKeyAddress,
       }),
-    })
-      .then(async (keyRes) => {
-        console.debug({
-          keyRes,
-          url: `${process.env.ROLLUP_GALAXY_URL}/register-session-key`,
-        });
-        if (keyRes.ok) res.status(201).json(await keyRes.json());
-        else throw new Error(`${keyRes.status} ${keyRes.statusText}`);
-      })
-      .catch((error) => {
-        console.error({ error });
-        res.status(500).json({ error });
-      });
-  }
+    },
+  )
+
+  res.status(galaxyResponse.status).json(await galaxyResponse.json())
 }

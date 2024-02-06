@@ -1,47 +1,61 @@
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/router";
-import { Contract, Signer, ethers } from "ethers";
-import { useEffect, useState } from "react";
-import { createSessionKeySigner } from "@zerodevapp/sdk";
-import LoginButton from "../../components/login-btn";
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/router'
+import { useEffect, useState } from 'react'
+
+import {
+  createPublicClient,
+  http,
+  parseAbi,
+  type PrivateKeyAccount,
+} from 'viem'
+import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
+import { polygonMumbai as chain } from 'viem/chains'
+import { type KernelSmartAccount } from '@zerodev/sdk'
+import { deserializeSessionKeyAccount } from '@zerodev/session-key'
+import { createEcdsaKernelAccountClient } from '@zerodev/presets/zerodev'
+
+import LoginButton from '../../components/login-btn'
+
+const projectId = '147f57a1-ae4f-47a0-b815-95225468f657'
 
 function classNames(...classes: any[]) {
-  return classes.filter(Boolean).join(" ");
+  return classes.filter(Boolean).join(' ')
 }
 
 export default function Address() {
-  const router = useRouter();
-  const { isReady, query, push } = router;
-  const { data: session, status } = useSession();
-  const [txnHash, setTxnHash] = useState<string>();
-  const [sessionError, setSessionError] = useState<Error>();
-  const [sessionKey, setSessionKey] = useState<{
-    privateSigner: Signer;
-    sessionJWT: string;
-    signerJson: string;
-  }>();
-  const [isSubmittingSessionKey, setIsSubmittingSessionKey] = useState(false);
-  const [isMinting, setIsMinting] = useState(false);
+  const router = useRouter()
+  const { isReady, query, push } = router
+  const { data: session, status } = useSession()
+  const [sessionError, setSessionError] = useState<Error>()
+  const [isSubmittingSessionKey, setIsSubmittingSessionKey] = useState(false)
+  const [isMinting, setIsMinting] = useState(false)
+
+  const [sessionKeySigner, setSessionKeySigner] = useState<PrivateKeyAccount>()
+
+  const [sessionKeyAccount, setSessionKeyAccount] =
+    useState<KernelSmartAccount>()
+
+  const [txnHash, setTxnHash] = useState<string>()
 
   useEffect(() => {
-    if (status === "loading" || !isReady) return;
+    if (status === 'loading' || !isReady) return
     if (
-      status === "unauthenticated" ||
+      status === 'unauthenticated' ||
       !session?.user ||
       (!session?.user.erc_4337 &&
         !session?.user.erc_4337?.filter((scw) => scw.address === query.address)
           .length)
     ) {
-      push("/");
+      push('/')
     }
-  }, [session, push, query.address, status, isReady]);
+  }, [session, push, query.address, status, isReady])
 
   return (
     <>
       <LoginButton />
       <div>
-        <button className="text-2xl" onClick={() => push("/")}>
-          {"< "} Back
+        <button className="text-2xl" onClick={() => push('/')}>
+          {'< '} Back
         </button>
         <h1 className="text-4xl my-8">Smart Contract Wallet Demo</h1>
         <h3 className="my-4">
@@ -55,48 +69,55 @@ export default function Address() {
           disabled={isSubmittingSessionKey}
           className={classNames(
             `inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50`,
-            isSubmittingSessionKey && "cursor-not-allowed opacity-50"
+            isSubmittingSessionKey && 'cursor-not-allowed opacity-50',
           )}
           onClick={async () => {
-            setIsSubmittingSessionKey(true);
-            const privateSigner = ethers.Wallet.createRandom();
-            const address = await privateSigner.getAddress();
+            setIsSubmittingSessionKey(true)
+            const sessionPrivateKey = generatePrivateKey()
+            const sessionKeySigner = privateKeyToAccount(sessionPrivateKey)
+            const sessionKeyAddress = sessionKeySigner.address
 
             await fetch(`/api/4337/${query.address}`, {
-              method: "POST",
+              method: 'POST',
               headers: {
-                "Content-Type": "application/json",
+                'Content-Type': 'application/json',
               },
-              body: JSON.stringify({
-                sessionPublicKey: address,
-              }),
+              body: JSON.stringify({ sessionKeyAddress }),
             })
               .then(async (res) => {
                 if (!res.ok) {
-                  throw "Failed to create session key";
+                  throw 'Failed to create session key'
                 }
-                setSessionError(undefined);
+                setSessionError(undefined)
 
-                const json = await res.json();
-                const signerJson = await privateSigner.encrypt("password");
-                setSessionKey({
-                  privateSigner,
-                  sessionJWT: json,
-                  signerJson,
-                });
+                const serializedSessionKey = await res.json()
+
+                const publicClient = createPublicClient({
+                  chain,
+                  transport: http(),
+                })
+
+                const sessionKeyAccount = await deserializeSessionKeyAccount(
+                  publicClient,
+                  serializedSessionKey,
+                  sessionKeySigner,
+                )
+
+                setSessionKeyAccount(sessionKeyAccount)
+                setSessionKeySigner(sessionKeySigner)
               })
               .catch((err) => {
-                setSessionError(err);
+                setSessionError(err)
               })
               .finally(() => {
-                setIsSubmittingSessionKey(false);
-              });
+                setIsSubmittingSessionKey(false)
+              })
           }}
         >
           <svg
             className={classNames(
-              "h-5 w-5 mr-3",
-              isSubmittingSessionKey ? "animate-spin inline-block" : "hidden"
+              'h-5 w-5 mr-3',
+              isSubmittingSessionKey ? 'animate-spin inline-block' : 'hidden',
             )}
             viewBox="0 0 24 24"
           >
@@ -119,17 +140,12 @@ export default function Address() {
 
         {sessionError && <p>{sessionError.message}</p>}
 
-        {sessionKey && (
+        {sessionKeyAccount && (
           <>
             <div>
               <h3 className="my-4">
-                <b>Generated Encoded Session Key:</b>{" "}
-                {sessionKey.sessionJWT.substring(0, 12) +
-                  "..." +
-                  sessionKey.sessionJWT.substring(
-                    sessionKey.sessionJWT.length - 12,
-                    sessionKey.sessionJWT.length
-                  )}
+                <b>Generated Encoded Session Key: </b>
+                <span>{sessionKeyAccount.address}</span>
               </h3>
             </div>
             <div>
@@ -138,40 +154,46 @@ export default function Address() {
                 disabled={isSubmittingSessionKey}
                 className={classNames(
                   `inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50`,
-                  isMinting && "cursor-not-allowed opacity-50"
+                  isMinting && 'cursor-not-allowed opacity-50',
                 )}
                 onClick={async () => {
-                  setIsMinting(true);
-                  const privateSigner = await ethers.Wallet.fromEncryptedJson(
-                    sessionKey.signerJson,
-                    "password"
-                  );
-                  const sessionKeySigner = await createSessionKeySigner({
-                    sessionKeyData: sessionKey.sessionJWT,
-                    privateSigner: privateSigner,
-                    projectId: "147f57a1-ae4f-47a0-b815-95225468f657",
-                  });
-                  const contractAddress =
-                    "0x34bE7f35132E97915633BC1fc020364EA5134863";
-                  const contractABI = [
-                    "function mint(address _to) public",
-                    "function balanceOf(address owner) external view returns (uint256 balance)",
-                  ];
-                  const nftContract = new Contract(
-                    contractAddress,
-                    contractABI,
-                    sessionKeySigner
-                  );
-                  const receipt = await nftContract.mint(query.address);
-                  await receipt.wait();
-                  setTxnHash(receipt.hash);
-                  setIsMinting(false);
+                  setIsMinting(true)
+
+                  const publicClient = createPublicClient({
+                    chain,
+                    transport: http(),
+                  })
+
+                  const kernelClient = await createEcdsaKernelAccountClient({
+                    chain,
+                    projectId,
+                    signer: sessionKeyAccount,
+                  })
+
+                  const { request } = await publicClient.simulateContract({
+                    account: sessionKeyAccount,
+                    address: '0x34bE7f35132E97915633BC1fc020364EA5134863',
+                    abi: parseAbi([
+                      'function mint(address _to) public',
+                      'function balanceOf(address owner) external view returns (uint256 balance)',
+                    ]),
+                    functionName: 'mint',
+                    args: [query.address as `0x${string}`],
+                  })
+
+                  const hash = await kernelClient.writeContract(request)
+                  await publicClient.waitForTransactionReceipt({
+                    hash,
+                  })
+
+                  setTxnHash(hash)
+                  setIsMinting(false)
                 }}
               >
                 <svg
                   className={classNames(
-                    "h-5 w-5 mr-3",
-                    isMinting ? "animate-spin inline-block" : "hidden"
+                    'h-5 w-5 mr-3',
+                    isMinting ? 'animate-spin inline-block' : 'hidden',
                   )}
                   viewBox="0 0 24 24"
                 >
@@ -193,7 +215,7 @@ export default function Address() {
               </button>
               {txnHash && (
                 <h3 className="my-4">
-                  <b>Transaction Hash:</b>{" "}
+                  <b>Transaction Hash:</b>{' '}
                   <a
                     className="underline"
                     target="_blank"
@@ -208,5 +230,5 @@ export default function Address() {
         )}
       </div>
     </>
-  );
+  )
 }

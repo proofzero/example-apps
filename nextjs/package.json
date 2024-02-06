@@ -10,18 +10,21 @@
   },
   "dependencies": {
     "@types/react-dom": "18.0.11",
-    "@zerodevapp/sdk": "^3.0.18",
+    "@zerodev/presets": "5.1.2",
+    "@zerodev/sdk": "5.0.9",
+    "@zerodev/session-key": "5.0.2",
     "autoprefixer": "10.4.14",
     "eslint": "8.39.0",
     "eslint-config-next": "13.3.1",
-    "ethers": "5.7.0",
     "jwt-decode": "^3.1.2",
     "next": "13.4.0",
     "next-auth": "^4.22.1",
+    "permissionless": "0.0.34",
     "postcss": "8.4.23",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "tailwindcss": "3.3.1"
+    "tailwindcss": "3.3.1",
+    "viem": "2.6.1"
   },
   "devDependencies": {
     "@types/node": "^18.16.0",
